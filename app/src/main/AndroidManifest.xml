@@ -27,6 +27,9 @@
         <!-- Écran de gestion de stock -->
         <activity android:name=".StockActivity" />
 
+        <!-- ➕ Nouvelle activité ajoutée -->
+        <activity android:name=".StockJournalierActivity" />
+
         <!-- Activités Livraison -->
         <activity android:name=".livraison.CommandesNormalesActivity" />
         <activity android:name=".livraison.CommandesSpecialesActivity" />

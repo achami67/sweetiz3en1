@@ -1,5 +1,6 @@
 package com.example.production;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,42 +11,79 @@ public class StockActivity extends AppCompatActivity {
 
     EditText inputIngredient, inputDisponible, inputTournee;
     Button buttonAjouter, buttonValider;
-    TextView textResultat;
+    TextView textTournees, textIngredientsAjoutes, textListeIngredients;
+
+    StringBuilder ingredientsAjoutes = new StringBuilder();
+    int totalTournees = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_stock);  // nom exact du fichier XML
+        setContentView(R.layout.activity_stock);
 
+        // Initialiser les composants
         inputIngredient = findViewById(R.id.inputIngredient);
         inputDisponible = findViewById(R.id.inputDisponible);
         inputTournee = findViewById(R.id.inputTournee);
         buttonAjouter = findViewById(R.id.buttonAjouter);
         buttonValider = findViewById(R.id.buttonValider);
-        textResultat = findViewById(R.id.textResultat);
+        textTournees = findViewById(R.id.textTournees);
+        textIngredientsAjoutes = findViewById(R.id.textIngredientsAjoutes);
+        textListeIngredients = findViewById(R.id.textListeIngredients);
 
+        // Action bouton "Ajouter l'ingrédient"
         buttonAjouter.setOnClickListener(v -> {
-            String nom = inputIngredient.getText().toString();
-            String dispoStr = inputDisponible.getText().toString();
-            String tourneeStr = inputTournee.getText().toString();
+            String nom = inputIngredient.getText().toString().trim();
+            String dispoStr = inputDisponible.getText().toString().trim();
+            String tourneeStr = inputTournee.getText().toString().trim();
 
             if (!nom.isEmpty() && !dispoStr.isEmpty() && !tourneeStr.isEmpty()) {
                 try {
                     float disponible = Float.parseFloat(dispoStr);
-                    float tournee = Float.parseFloat(tourneeStr);
-                    int tournees = (int) (disponible / tournee);
+                    float parTournee = Float.parseFloat(tourneeStr);
 
-                    textResultat.setText("Ingrédient ajouté : " + nom + "\nTournées possibles : " + tournees);
+                    if (parTournee <= 0) {
+                        textTournees.setText("⚠️ Qté par tournée doit être > 0.");
+                        return;
+                    }
+
+                    int tournees = (int) (disponible / parTournee);
+                    totalTournees += tournees;
+
+                    // Ajouter ligne à la liste
+                    ingredientsAjoutes.append(nom)
+                            .append(" – ")
+                            .append((int) disponible).append(" Kg – ")
+                            .append((int) parTournee).append(" Kg/tournée\n");
+
+                    // Mise à jour UI
+                    textListeIngredients.setText(ingredientsAjoutes.toString());
+                    textTournees.setText("Tournées possibles : " + totalTournees);
+
+                    // Réinitialiser les champs
+                    inputIngredient.setText("");
+                    inputDisponible.setText("");
+                    inputTournee.setText("");
+
                 } catch (NumberFormatException e) {
-                    textResultat.setText("⚠️ Veuillez entrer des nombres valides.");
+                    textTournees.setText("⚠️ Veuillez entrer des nombres valides.");
                 }
             } else {
-                textResultat.setText("⚠️ Remplir tous les champs.");
+                textTournees.setText("⚠️ Remplir tous les champs.");
             }
         });
 
+        // Action bouton "Valider"
         buttonValider.setOnClickListener(v -> {
-            textResultat.setText("✅ Stock validé !");
+            if (ingredientsAjoutes.length() == 0) {
+                textTournees.setText("⚠️ Aucun ingrédient ajouté.");
+            } else {
+                // Démarre la nouvelle activité avec les données
+                Intent intent = new Intent(StockActivity.this, StockJournalierActivity.class);
+                intent.putExtra("ingredients", ingredientsAjoutes.toString());
+                intent.putExtra("tournees", totalTournees);
+                startActivity(intent);
+            }
         });
     }
 }
