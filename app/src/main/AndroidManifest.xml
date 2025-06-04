@@ -14,7 +14,7 @@
         android:theme="@style/Theme.Production"
         tools:targetApi="31">
 
-        <!-- Écran d'accueil -->
+        <!-- Écran principal (accueil) -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -24,17 +24,19 @@
             </intent-filter>
         </activity>
 
-        <!-- Écran de gestion de stock -->
+        <!-- Stock -->
         <activity android:name=".StockActivity" />
-
-        <!-- ➕ Nouvelle activité ajoutée -->
         <activity android:name=".StockJournalierActivity" />
+        <activity android:name=".ConversionTourneesActivity" />
 
-        <!-- Activités Livraison -->
+        <!-- Livraison -->
         <activity android:name=".livraison.CommandesNormalesActivity" />
         <activity android:name=".livraison.CommandesSpecialesActivity" />
         <activity android:name=".livraison.ResumeCommandesActivity" />
         <activity android:name=".livraison.PourcentagesActivity" />
+
+        <!-- ✅ Livraison : commandes habituelles uniquement -->
+        <activity android:name=".livraison.CommandesHabituellesActivity" />
 
     </application>
 

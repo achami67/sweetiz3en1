@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollCommandes"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
     android:background="#FAF6FF">
 
     <LinearLayout
+        android:id="@+id/rootLayoutCommandes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- 🔼 Bouton pour ajouter une commande habituelle -->
+        <!-- 🔼 Ajouter une commande enregistrée -->
         <Button
             android:id="@+id/buttonAjouterHabituelle"
             android:layout_width="match_parent"
@@ -20,7 +22,7 @@
             android:textColor="@android:color/white"
             android:layout_marginBottom="12dp" />
 
-        <!-- Titre zone habituelle -->
+        <!-- 🟣 Titre : Commandes enregistrées -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -29,7 +31,7 @@
             android:textSize="18sp"
             android:layout_marginBottom="8dp" />
 
-        <!-- Zone dynamique habituelle -->
+        <!-- 🔄 Zone dynamique pour commandes enregistrées -->
         <LinearLayout
             android:id="@+id/layoutHabituelles"
             android:layout_width="match_parent"
@@ -37,7 +39,7 @@
             android:orientation="vertical"
             android:layout_marginBottom="24dp" />
 
-        <!-- Titre zone ponctuelle -->
+        <!-- 🟡 Titre : Commandes ponctuelles -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -46,7 +48,7 @@
             android:textSize="18sp"
             android:layout_marginBottom="8dp" />
 
-        <!-- Zone dynamique ponctuelle -->
+        <!-- 🔄 Zone dynamique pour ponctuelles -->
         <LinearLayout
             android:id="@+id/layoutPonctuelles"
             android:layout_width="match_parent"
@@ -54,7 +56,7 @@
             android:orientation="vertical"
             android:layout_marginBottom="24dp" />
 
-        <!-- 🔽 Bouton pour ajouter une commande ponctuelle -->
+        <!-- ➕ Ajouter une ponctuelle -->
         <Button
             android:id="@+id/buttonAjouterPonctuelle"
             android:layout_width="match_parent"
@@ -62,9 +64,9 @@
             android:text="Ajouter une commande ponctuelle"
             android:backgroundTint="@android:color/holo_green_dark"
             android:textColor="@android:color/white"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="16dp" />
 
-        <!-- ✅ Valider -->
+        <!-- ✅ Valider toutes les commandes -->
         <Button
             android:id="@+id/buttonValiderCommandes"
             android:layout_width="match_parent"

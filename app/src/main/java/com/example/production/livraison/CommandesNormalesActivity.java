@@ -1,33 +1,27 @@
 package com.example.production.livraison;
-import com.example.production.R;
 
+import com.example.production.R;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.LinearLayout;
+import android.widget.*;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CommandesNormalesActivity extends AppCompatActivity {
 
-    private LinearLayout layoutHabituelles, layoutPonctuelles;
-    private Button buttonAjouterHabituelle, buttonAjouterPonctuelle, buttonValiderCommandes;
-    private List<CommandeClient> commandesHabituelles = new ArrayList<>();
-    private Map<Integer, Boolean> inclusionMap = new HashMap<>();
+    protected LinearLayout layoutHabituelles, layoutPonctuelles;
+    protected Button buttonAjouterHabituelle, buttonAjouterPonctuelle, buttonValiderCommandes;
+
+    protected List<CommandeClient> commandesHabituelles = new ArrayList<>();
+    protected Map<Integer, Boolean> inclusionMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +42,6 @@ public class CommandesNormalesActivity extends AppCompatActivity {
 
         buttonAjouterHabituelle.setOnClickListener(v -> ajouterBlocCommande(null, true, layoutHabituelles.getChildCount()));
         buttonAjouterPonctuelle.setOnClickListener(v -> ajouterBlocCommande(null, false, -1));
-
         buttonValiderCommandes.setOnClickListener(v -> {
             sauvegarderCommandesHabituelles();
             sauvegarderCommandesPonctuelles();
@@ -56,7 +49,7 @@ public class CommandesNormalesActivity extends AppCompatActivity {
         });
     }
 
-    private void ajouterBlocCommande(CommandeClient commande, boolean estHabituelle, int index) {
+    protected void ajouterBlocCommande(CommandeClient commande, boolean estHabituelle, int index) {
         View bloc = LayoutInflater.from(this).inflate(R.layout.item_commande_client,
                 estHabituelle ? layoutHabituelles : layoutPonctuelles, false);
 
@@ -70,8 +63,10 @@ public class CommandesNormalesActivity extends AppCompatActivity {
         if (commande != null) {
             editNomClient.setText(commande.getNomClient());
             editQuantiteTotale.setText(String.valueOf(commande.getQuantiteTotale()));
+
             if (commande.getGoutsExclus() != null)
                 editExclusions.setText(String.join(",", commande.getGoutsExclus()));
+
             if (commande.getGouts() != null) {
                 for (GoutQuantite gq : commande.getGouts()) {
                     View goutView = LayoutInflater.from(this).inflate(R.layout.item_gout_special, layoutGouts, false);
@@ -97,7 +92,10 @@ public class CommandesNormalesActivity extends AppCompatActivity {
             CheckBox checkboxInclure = new CheckBox(this);
             checkboxInclure.setText("Inclure dans la commande du jour");
             checkboxInclure.setChecked(commande != null && commande.isInclureAujourdHui());
-            if (commande != null) inclusionMap.put(index, commande.isInclureAujourdHui());
+
+            if (commande != null) {
+                inclusionMap.put(index, commande.isInclureAujourdHui());
+            }
 
             checkboxInclure.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 inclusionMap.put(index, isChecked);
@@ -118,7 +116,7 @@ public class CommandesNormalesActivity extends AppCompatActivity {
         });
     }
 
-    private void sauvegarderCommandesHabituelles() {
+    protected void sauvegarderCommandesHabituelles() {
         commandesHabituelles.clear();
         int index = 0;
 
@@ -171,7 +169,7 @@ public class CommandesNormalesActivity extends AppCompatActivity {
         prefs.edit().putString("commandes_habituelles", new Gson().toJson(commandesHabituelles)).apply();
     }
 
-    private void sauvegarderCommandesPonctuelles() {
+    protected void sauvegarderCommandesPonctuelles() {
         List<CommandeClient> ponctuelles = new ArrayList<>();
 
         for (int i = 0; i < layoutPonctuelles.getChildCount(); i++) {
@@ -219,7 +217,7 @@ public class CommandesNormalesActivity extends AppCompatActivity {
         prefs.edit().putString("commandes_ponctuelles", new Gson().toJson(ponctuelles)).apply();
     }
 
-    private void chargerCommandesHabituelles() {
+    protected void chargerCommandesHabituelles() {
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         String json = prefs.getString("commandes_habituelles", null);
         if (json != null) {
