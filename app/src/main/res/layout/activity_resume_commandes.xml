@@ -83,6 +83,17 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@android:color/darker_gray"
-            android:padding="8dp" />
+            android:padding="8dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- 🔽 Bouton Suivi de la production -->
+        <Button
+            android:id="@+id/buttonSuiviProduction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Suivi de la production"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@android:color/holo_purple"
+            android:textColor="@android:color/white" />
     </LinearLayout>
 </ScrollView>

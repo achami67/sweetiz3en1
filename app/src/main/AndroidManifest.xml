@@ -14,7 +14,7 @@
         android:theme="@style/Theme.Production"
         tools:targetApi="31">
 
-        <!-- Écran principal (accueil) -->
+        <!-- 🏠 Accueil principal -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -24,19 +24,20 @@
             </intent-filter>
         </activity>
 
-        <!-- Stock -->
+        <!-- 📦 Stock -->
         <activity android:name=".StockActivity" />
         <activity android:name=".StockJournalierActivity" />
         <activity android:name=".ConversionTourneesActivity" />
 
-        <!-- Livraison -->
+        <!-- 📬 Livraison -->
         <activity android:name=".livraison.CommandesNormalesActivity" />
         <activity android:name=".livraison.CommandesSpecialesActivity" />
-        <activity android:name=".livraison.ResumeCommandesActivity" />
-        <activity android:name=".livraison.PourcentagesActivity" />
-
-        <!-- ✅ Livraison : commandes habituelles uniquement -->
         <activity android:name=".livraison.CommandesHabituellesActivity" />
+        <activity android:name=".livraison.PourcentagesActivity" />
+        <activity android:name=".livraison.ResumeCommandesActivity" />
+
+        <!-- 🛠️ Suivi de la production (page 5) -->
+        <activity android:name=".SuiviProductionActivity" /> <!-- ✅ Corrigé ici -->
 
     </application>
 

@@ -1,8 +1,12 @@
 package com.example.production.livraison;
-import com.example.production.R;
 
+import com.example.production.R;
+import com.example.production.SuiviProductionActivity; // ✅ Import corrigé
+
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -11,13 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ResumeCommandesActivity extends AppCompatActivity {
 
@@ -43,6 +41,13 @@ public class ResumeCommandesActivity extends AppCompatActivity {
         afficherCommandesPonctuelles(global);
         afficherCommandesSpeciales(global);
         afficherTotalGlobal(global);
+
+        // 🔽 Lien vers Suivi de la production (page 5)
+        Button btnSuivi = findViewById(R.id.buttonSuiviProduction);
+        btnSuivi.setOnClickListener(v -> {
+            Intent intent = new Intent(this, SuiviProductionActivity.class);
+            startActivity(intent);
+        });
     }
 
     private List<PourcentageGout> chargerBasePourcentages() {
