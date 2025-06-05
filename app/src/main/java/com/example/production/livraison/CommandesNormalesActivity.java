@@ -22,6 +22,7 @@ public class CommandesNormalesActivity extends AppCompatActivity {
 
     protected List<CommandeClient> commandesHabituelles = new ArrayList<>();
     protected Map<Integer, Boolean> inclusionMap = new HashMap<>();
+    protected List<String> nomsGoutsDisponibles = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,13 +35,14 @@ public class CommandesNormalesActivity extends AppCompatActivity {
         buttonAjouterPonctuelle = findViewById(R.id.buttonAjouterPonctuelle);
         buttonValiderCommandes = findViewById(R.id.buttonValiderCommandes);
 
+        nomsGoutsDisponibles = chargerNomsGoutsDepuisPrefs();
         chargerCommandesHabituelles();
 
         for (int i = 0; i < commandesHabituelles.size(); i++) {
             ajouterBlocCommande(commandesHabituelles.get(i), true, i);
         }
 
-        buttonAjouterHabituelle.setOnClickListener(v -> ajouterBlocCommande(null, true, layoutHabituelles.getChildCount()));
+        buttonAjouterHabituelle.setOnClickListener(v -> ajouterBlocCommande(null, true, layoutHabituelles.getChildCount() / 2));
         buttonAjouterPonctuelle.setOnClickListener(v -> ajouterBlocCommande(null, false, -1));
         buttonValiderCommandes.setOnClickListener(v -> {
             sauvegarderCommandesHabituelles();
@@ -54,25 +56,29 @@ public class CommandesNormalesActivity extends AppCompatActivity {
                 estHabituelle ? layoutHabituelles : layoutPonctuelles, false);
 
         EditText editNomClient = bloc.findViewById(R.id.editNomClient);
+        AutoCompleteTextView editExclusions = bloc.findViewById(R.id.editExclusions);
         EditText editQuantiteTotale = bloc.findViewById(R.id.editQuantiteTotale);
-        EditText editExclusions = bloc.findViewById(R.id.editExclusions);
         LinearLayout layoutGouts = bloc.findViewById(R.id.layoutGoutsClient);
         Button btnAjouterGout = bloc.findViewById(R.id.btnAjouterGoutClient);
         Button btnSupprimerClient = bloc.findViewById(R.id.btnSupprimerCommande);
+
+        initialiserAutoComplete(editExclusions);
 
         if (commande != null) {
             editNomClient.setText(commande.getNomClient());
             editQuantiteTotale.setText(String.valueOf(commande.getQuantiteTotale()));
 
             if (commande.getGoutsExclus() != null)
-                editExclusions.setText(String.join(",", commande.getGoutsExclus()));
+                editExclusions.setText(String.join(" ", commande.getGoutsExclus()));
 
             if (commande.getGouts() != null) {
                 for (GoutQuantite gq : commande.getGouts()) {
                     View goutView = LayoutInflater.from(this).inflate(R.layout.item_gout_special, layoutGouts, false);
-                    EditText nom = goutView.findViewById(R.id.editNomGout);
+                    AutoCompleteTextView nom = goutView.findViewById(R.id.editNomGout);
                     EditText qte = goutView.findViewById(R.id.editQuantiteGout);
                     Button btnSup = goutView.findViewById(R.id.btnSupprimerGout);
+
+                    initialiserAutoComplete(nom);
                     nom.setText(gq.getNom());
                     qte.setText(String.valueOf(gq.getQuantite()));
                     btnSup.setOnClickListener(x -> layoutGouts.removeView(goutView));
@@ -83,7 +89,10 @@ public class CommandesNormalesActivity extends AppCompatActivity {
 
         btnAjouterGout.setOnClickListener(v -> {
             View goutView = LayoutInflater.from(this).inflate(R.layout.item_gout_special, layoutGouts, false);
+            AutoCompleteTextView nom = goutView.findViewById(R.id.editNomGout);
+            EditText qte = goutView.findViewById(R.id.editQuantiteGout);
             Button btnSup = goutView.findViewById(R.id.btnSupprimerGout);
+            initialiserAutoComplete(nom);
             btnSup.setOnClickListener(x -> layoutGouts.removeView(goutView));
             layoutGouts.addView(goutView);
         });
@@ -97,23 +106,55 @@ public class CommandesNormalesActivity extends AppCompatActivity {
                 inclusionMap.put(index, commande.isInclureAujourdHui());
             }
 
-            checkboxInclure.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                inclusionMap.put(index, isChecked);
-            });
+            checkboxInclure.setOnCheckedChangeListener((buttonView, isChecked) -> inclusionMap.put(index, isChecked));
 
             layoutHabituelles.addView(checkboxInclure);
             layoutHabituelles.addView(bloc);
+
+            btnSupprimerClient.setOnClickListener(v -> {
+                layoutHabituelles.removeView(checkboxInclure);
+                layoutHabituelles.removeView(bloc);
+            });
         } else {
             layoutPonctuelles.addView(bloc);
-        }
 
-        btnSupprimerClient.setOnClickListener(v -> {
-            if (estHabituelle) {
-                layoutHabituelles.removeView(bloc);
-            } else {
-                layoutPonctuelles.removeView(bloc);
-            }
+            btnSupprimerClient.setOnClickListener(v -> layoutPonctuelles.removeView(bloc));
+        }
+    }
+
+    private void initialiserAutoComplete(AutoCompleteTextView view) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_dropdown_item_1line, nomsGoutsDisponibles);
+        view.setAdapter(adapter);
+        view.setThreshold(1);
+
+        view.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) validerGout(view);
         });
+
+        view.setOnDismissListener(() -> validerGout(view));
+    }
+
+    private void validerGout(AutoCompleteTextView view) {
+        String nom = view.getText().toString().trim();
+        if (!nom.isEmpty() && !nomsGoutsDisponibles.contains(nom)) {
+            view.setError("Goût inconnu");
+        } else {
+            view.setError(null);
+        }
+    }
+
+    private List<String> chargerNomsGoutsDepuisPrefs() {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        String json = prefs.getString("liste_gouts", null);
+        List<String> noms = new ArrayList<>();
+        if (json != null) {
+            List<PourcentageGout> gouts = new Gson().fromJson(json, new TypeToken<List<PourcentageGout>>() {}.getType());
+            for (PourcentageGout g : gouts) {
+                noms.add(g.getNomGout());
+            }
+        }
+        return noms;
     }
 
     protected void sauvegarderCommandesHabituelles() {
@@ -126,32 +167,50 @@ public class CommandesNormalesActivity extends AppCompatActivity {
 
             EditText editNom = view.findViewById(R.id.editNomClient);
             EditText editQte = view.findViewById(R.id.editQuantiteTotale);
-            EditText editExclu = view.findViewById(R.id.editExclusions);
+            AutoCompleteTextView editExclu = view.findViewById(R.id.editExclusions);
             LinearLayout layoutGouts = view.findViewById(R.id.layoutGoutsClient);
 
-            if (editNom == null || editQte == null || layoutGouts == null) continue;
+            List<GoutQuantite> gouts = new ArrayList<>();
+            boolean erreur = false;
+
+            for (int j = 0; j < layoutGouts.getChildCount(); j++) {
+                View gv = layoutGouts.getChildAt(j);
+                AutoCompleteTextView nomG = gv.findViewById(R.id.editNomGout);
+                EditText qtG = gv.findViewById(R.id.editQuantiteGout);
+                String nom = nomG.getText().toString().trim();
+                if (!nomsGoutsDisponibles.contains(nom)) {
+                    nomG.setError("Goût inconnu");
+                    erreur = true;
+                }
+                try {
+                    int qG = Integer.parseInt(qtG.getText().toString());
+                    gouts.add(new GoutQuantite(nom, qG));
+                } catch (NumberFormatException ignored) {}
+            }
+
+            List<String> exclu = new ArrayList<>();
+            String[] excluTokens = editExclu.getText().toString().split("\\s+");
+            for (String ex : excluTokens) {
+                if (!ex.trim().isEmpty()) {
+                    if (!nomsGoutsDisponibles.contains(ex.trim())) {
+                        editExclu.setError("Goût exclu inconnu : " + ex.trim());
+                        erreur = true;
+                    } else {
+                        exclu.add(ex.trim());
+                    }
+                }
+            }
+
+            if (erreur) {
+                Toast.makeText(this, "Erreur : goûts invalides détectés", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             String nom = editNom.getText().toString().trim();
             int qte = 0;
             try {
                 qte = Integer.parseInt(editQte.getText().toString().trim());
             } catch (NumberFormatException ignored) {}
-
-            List<String> exclu = new ArrayList<>();
-            if (!editExclu.getText().toString().trim().isEmpty()) {
-                exclu = Arrays.asList(editExclu.getText().toString().split(","));
-            }
-
-            List<GoutQuantite> gouts = new ArrayList<>();
-            for (int j = 0; j < layoutGouts.getChildCount(); j++) {
-                View gv = layoutGouts.getChildAt(j);
-                EditText nomG = gv.findViewById(R.id.editNomGout);
-                EditText qtG = gv.findViewById(R.id.editQuantiteGout);
-                try {
-                    int qG = Integer.parseInt(qtG.getText().toString());
-                    gouts.add(new GoutQuantite(nomG.getText().toString(), qG));
-                } catch (NumberFormatException ignored) {}
-            }
 
             if (!nom.isEmpty()) {
                 CommandeClient cc = new CommandeClient(nom);
@@ -161,7 +220,6 @@ public class CommandesNormalesActivity extends AppCompatActivity {
                 cc.setInclureAujourdHui(inclusionMap.getOrDefault(index, false));
                 commandesHabituelles.add(cc);
             }
-
             index++;
         }
 
@@ -177,32 +235,50 @@ public class CommandesNormalesActivity extends AppCompatActivity {
 
             EditText editNom = bloc.findViewById(R.id.editNomClient);
             EditText editQte = bloc.findViewById(R.id.editQuantiteTotale);
-            EditText editExclu = bloc.findViewById(R.id.editExclusions);
+            AutoCompleteTextView editExclu = bloc.findViewById(R.id.editExclusions);
             LinearLayout layoutGouts = bloc.findViewById(R.id.layoutGoutsClient);
 
-            if (editNom == null || editQte == null || layoutGouts == null) continue;
+            List<GoutQuantite> gouts = new ArrayList<>();
+            boolean erreur = false;
+
+            for (int j = 0; j < layoutGouts.getChildCount(); j++) {
+                View gv = layoutGouts.getChildAt(j);
+                AutoCompleteTextView nomG = gv.findViewById(R.id.editNomGout);
+                EditText qtG = gv.findViewById(R.id.editQuantiteGout);
+                String nom = nomG.getText().toString().trim();
+                if (!nomsGoutsDisponibles.contains(nom)) {
+                    nomG.setError("Goût inconnu");
+                    erreur = true;
+                }
+                try {
+                    int qG = Integer.parseInt(qtG.getText().toString());
+                    gouts.add(new GoutQuantite(nom, qG));
+                } catch (NumberFormatException ignored) {}
+            }
+
+            List<String> exclu = new ArrayList<>();
+            String[] excluTokens = editExclu.getText().toString().split("\\s+");
+            for (String ex : excluTokens) {
+                if (!ex.trim().isEmpty()) {
+                    if (!nomsGoutsDisponibles.contains(ex.trim())) {
+                        editExclu.setError("Goût exclu inconnu : " + ex.trim());
+                        erreur = true;
+                    } else {
+                        exclu.add(ex.trim());
+                    }
+                }
+            }
+
+            if (erreur) {
+                Toast.makeText(this, "Erreur : goûts invalides détectés", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             String nom = editNom.getText().toString().trim();
             int qte = 0;
             try {
                 qte = Integer.parseInt(editQte.getText().toString().trim());
             } catch (NumberFormatException ignored) {}
-
-            List<String> exclu = new ArrayList<>();
-            if (!editExclu.getText().toString().trim().isEmpty()) {
-                exclu = Arrays.asList(editExclu.getText().toString().split(","));
-            }
-
-            List<GoutQuantite> gouts = new ArrayList<>();
-            for (int j = 0; j < layoutGouts.getChildCount(); j++) {
-                View gv = layoutGouts.getChildAt(j);
-                EditText nomG = gv.findViewById(R.id.editNomGout);
-                EditText qtG = gv.findViewById(R.id.editQuantiteGout);
-                try {
-                    int qG = Integer.parseInt(qtG.getText().toString());
-                    gouts.add(new GoutQuantite(nomG.getText().toString(), qG));
-                } catch (NumberFormatException ignored) {}
-            }
 
             if (!nom.isEmpty()) {
                 CommandeClient cc = new CommandeClient(nom);
@@ -221,7 +297,7 @@ public class CommandesNormalesActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         String json = prefs.getString("commandes_habituelles", null);
         if (json != null) {
-            commandesHabituelles = new Gson().fromJson(json, new TypeToken<List<CommandeClient>>() {}.getType());
+            commandesHabituelles = new Gson().fromJson(json, new TypeToken<List<CommandeClient>>(){}.getType());
         }
     }
 }

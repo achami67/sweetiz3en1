@@ -6,13 +6,14 @@
     android:padding="12dp"
     android:background="@android:color/white">
 
-    <!-- Ligne nom client + bouton supprimer -->
+    <!-- Ligne : nom du client + bouton de suppression -->
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:layout_marginBottom="8dp">
+
         <EditText
             android:id="@+id/editNomClient"
             android:layout_width="0dp"
@@ -20,6 +21,7 @@
             android:layout_height="wrap_content"
             android:hint="Nom du client"
             android:textColor="@android:color/black" />
+
         <Button
             android:id="@+id/btnSupprimerCommande"
             android:layout_width="wrap_content"
@@ -30,7 +32,7 @@
             android:layout_marginStart="8dp" />
     </LinearLayout>
 
-    <!-- Champ pour la quantité totale -->
+    <!-- Champ : quantité totale -->
     <EditText
         android:id="@+id/editQuantiteTotale"
         android:layout_width="match_parent"
@@ -40,16 +42,17 @@
         android:textColor="@android:color/black"
         android:layout_marginBottom="8dp" />
 
-    <!-- Champ pour exclure certains goûts -->
-    <EditText
+    <!-- Champ : exclusion de goûts -->
+    <AutoCompleteTextView
         android:id="@+id/editExclusions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Exclure certains goûts (séparés par des virgules)"
+        android:hint="Exclure certains goûts"
+        android:inputType="text"
         android:textColor="@android:color/black"
         android:layout_marginBottom="8dp" />
 
-    <!-- Conteneur des goûts -->
+    <!-- Conteneur pour les goûts personnalisés -->
     <LinearLayout
         android:id="@+id/layoutGoutsClient"
         android:layout_width="match_parent"
@@ -57,7 +60,7 @@
         android:orientation="vertical"
         android:layout_marginBottom="8dp" />
 
-    <!-- Bouton pour ajouter un goût pour ce client -->
+    <!-- Bouton : ajouter un goût -->
     <Button
         android:id="@+id/btnAjouterGoutClient"
         android:layout_width="match_parent"
@@ -66,10 +69,9 @@
         android:backgroundTint="@android:color/holo_green_dark"
         android:textColor="@android:color/white"
         android:textAllCaps="false"
-        android:layout_marginBottom="8dp"
-        android:visibility="visible" />
+        android:layout_marginBottom="8dp" />
 
-    <!-- Nouvelle Checkbox pour inclure dans la commande du jour -->
+    <!-- Case à cocher : inclure dans la commande du jour -->
     <CheckBox
         android:id="@+id/checkboxInclureAujourdHui"
         android:layout_width="wrap_content"

@@ -1,5 +1,7 @@
 package com.example.production.livraison;
+
 import com.example.production.R;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -53,6 +55,26 @@ public class PourcentagesActivity extends AppCompatActivity implements Pourcenta
 
             try {
                 int pourcentage = Integer.parseInt(pourcent);
+
+                if (pourcentage < 0 || pourcentage > 100) {
+                    Toast.makeText(this, "Le pourcentage doit être entre 0 et 100.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                boolean existeDeja = false;
+                for (int i = 0; i < listePourcentages.size(); i++) {
+                    if (i != positionEnCoursDeModification &&
+                            listePourcentages.get(i).getNomGout().equalsIgnoreCase(nom)) {
+                        existeDeja = true;
+                        break;
+                    }
+                }
+
+                if (existeDeja) {
+                    Toast.makeText(this, "Ce goût existe déjà dans la liste.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 PourcentageGout gout = new PourcentageGout(nom, pourcentage);
 
                 if (positionEnCoursDeModification != -1) {

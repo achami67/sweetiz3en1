@@ -5,25 +5,31 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.*;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+
 import android.text.InputType;
 import android.widget.LinearLayout.LayoutParams;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class StockJournalierActivity extends AppCompatActivity {
 
     private LinearLayout layoutGoutsDynamiques;
     private EditText editTextStockTotal;
+    private EditText editTextDate; // ✅ Ajout
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stock_journalier);
 
-        // Debug
         Toast.makeText(this, "StockJournalierActivity lancée", Toast.LENGTH_SHORT).show();
 
-        // Récupération des données de l’intent entrant
+        // Récupération des données de l’intent
         Intent intent = getIntent();
         String ingredients = intent.getStringExtra("ingredients");
         int tournees = intent.getIntExtra("tournees", 0);
@@ -35,13 +41,18 @@ public class StockJournalierActivity extends AppCompatActivity {
         // Initialisation des vues
         layoutGoutsDynamiques = findViewById(R.id.layoutGoutsDynamiques);
         editTextStockTotal = findViewById(R.id.editTextStockTotal);
+        editTextDate = findViewById(R.id.editTextDate); // ✅ récupération
 
-        // Bouton "Ajouter un goût"
+        // ✅ Remplir automatiquement la date du jour
+        String currentDate = new SimpleDateFormat("dd / MM / yyyy", Locale.getDefault()).format(new Date());
+        editTextDate.setText(currentDate);
+
+        // Bouton : Ajouter un goût
         Button buttonAjouterGout = findViewById(R.id.buttonAjouterGout);
         buttonAjouterGout.setOnClickListener(v -> ajouterChampGout());
 
-        // Bouton "Valider" → ConversionTourneesActivity
-        Button buttonValider = findViewById(R.id.buttonValider); // ✅ CORRECTION ICI
+        // Bouton : Valider → ConversionTourneesActivity
+        Button buttonValider = findViewById(R.id.buttonValider);
         buttonValider.setOnClickListener(v -> {
             String stockTotalStr = editTextStockTotal.getText().toString().trim();
 

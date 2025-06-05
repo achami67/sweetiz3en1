@@ -1,32 +1,30 @@
 package com.example.production.livraison;
+
 import com.example.production.R;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class CommandesSpecialesActivity extends AppCompatActivity {
 
     private LinearLayout layoutClients;
     private Button buttonAjouterClient, buttonValiderCommandesSpeciales;
     private final Gson gson = new Gson();
+    private List<String> nomsGoutsDisponibles = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,11 +35,17 @@ public class CommandesSpecialesActivity extends AppCompatActivity {
         buttonAjouterClient = findViewById(R.id.buttonAjouterClient);
         buttonValiderCommandesSpeciales = findViewById(R.id.buttonValiderCommandesSpeciales);
 
+        nomsGoutsDisponibles = chargerNomsGoutsDepuisPrefs();
+
         chargerCommandesEnregistrees();
 
         buttonAjouterClient.setOnClickListener(v -> ajouterBlocClient(null));
 
         buttonValiderCommandesSpeciales.setOnClickListener(v -> {
+            if (contientGoutInvalide()) {
+                Toast.makeText(this, "Certains goûts ne sont pas valides, veuillez corriger avant de valider.", Toast.LENGTH_LONG).show();
+                return;
+            }
             enregistrerCommandes();
             Toast.makeText(this, "Commandes spéciales enregistrées", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, ResumeCommandesActivity.class));
@@ -77,17 +81,13 @@ public class CommandesSpecialesActivity extends AppCompatActivity {
 
         btnSupprimerBlocType.setOnClickListener(v -> parent.removeView(blocType));
 
-        List<String> typesDisponibles = new ArrayList<>();
-        typesDisponibles.add("Pot");
-        typesDisponibles.add("Boîte");
-        typesDisponibles.add("Verrine");
+        List<String> typesDisponibles = new ArrayList<>(Arrays.asList("Pot", "Boîte", "Verrine"));
 
         final Runnable[] majListeTypes = new Runnable[1];
-
         majListeTypes[0] = () -> {
             layoutTypes.removeAllViews();
             for (String type : typesDisponibles) {
-                View ligne = LayoutInflater.from(CommandesSpecialesActivity.this).inflate(R.layout.item_type_liste, layoutTypes, false);
+                View ligne = LayoutInflater.from(this).inflate(R.layout.item_type_liste, layoutTypes, false);
                 TextView textNom = ligne.findViewById(R.id.textNomType);
                 ImageView btnSupprimer = ligne.findViewById(R.id.btnSupprimerType);
 
@@ -133,15 +133,76 @@ public class CommandesSpecialesActivity extends AppCompatActivity {
 
     private void ajouterGout(LinearLayout parent, String nom, int quantite) {
         View ligneGout = LayoutInflater.from(this).inflate(R.layout.item_gout_special, parent, false);
-        EditText editNom = ligneGout.findViewById(R.id.editNomGout);
+        AutoCompleteTextView editNom = ligneGout.findViewById(R.id.editNomGout);
         EditText editQuantite = ligneGout.findViewById(R.id.editQuantiteGout);
         Button btnSupprGout = ligneGout.findViewById(R.id.btnSupprimerGout);
 
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                nomsGoutsDisponibles
+        );
+        editNom.setAdapter(adapter);
+        editNom.setThreshold(1); // suggestion dès 1 caractère
+
         editNom.setText(nom);
         editQuantite.setText(String.valueOf(quantite));
+
         btnSupprGout.setOnClickListener(xx -> parent.removeView(ligneGout));
 
+        // Validation en temps réel
+        editNom.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override public void afterTextChanged(Editable s) {
+                String saisie = s.toString().trim();
+                if (!nomsGoutsDisponibles.contains(saisie)) {
+                    editNom.setBackgroundColor(Color.argb(60, 255, 0, 0)); // léger rouge
+                    editNom.setError("Goût non reconnu");
+                } else {
+                    editNom.setBackgroundColor(Color.TRANSPARENT);
+                    editNom.setError(null);
+                }
+            }
+        });
+
         parent.addView(ligneGout);
+    }
+
+    private boolean contientGoutInvalide() {
+        for (int i = 0; i < layoutClients.getChildCount(); i++) {
+            View client = layoutClients.getChildAt(i);
+            LinearLayout layoutTypes = client.findViewById(R.id.layoutGouts);
+
+            for (int j = 0; j < layoutTypes.getChildCount(); j++) {
+                View blocType = layoutTypes.getChildAt(j);
+                LinearLayout layoutGouts = blocType.findViewById(R.id.layoutGouts);
+
+                for (int k = 0; k < layoutGouts.getChildCount(); k++) {
+                    View goutView = layoutGouts.getChildAt(k);
+                    AutoCompleteTextView nom = goutView.findViewById(R.id.editNomGout);
+
+                    if (!nomsGoutsDisponibles.contains(nom.getText().toString().trim())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private List<String> chargerNomsGoutsDepuisPrefs() {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        String json = prefs.getString("liste_gouts", null);
+        List<String> noms = new ArrayList<>();
+        if (json != null) {
+            List<PourcentageGout> gouts = new Gson().fromJson(json, new TypeToken<List<PourcentageGout>>() {}.getType());
+            for (PourcentageGout g : gouts) {
+                noms.add(g.getNomGout());
+            }
+        }
+        return noms;
     }
 
     private void enregistrerCommandes() {
@@ -164,7 +225,7 @@ public class CommandesSpecialesActivity extends AppCompatActivity {
 
                 for (int k = 0; k < layoutGouts.getChildCount(); k++) {
                     View goutView = layoutGouts.getChildAt(k);
-                    EditText nom = goutView.findViewById(R.id.editNomGout);
+                    AutoCompleteTextView nom = goutView.findViewById(R.id.editNomGout);
                     EditText qte = goutView.findViewById(R.id.editQuantiteGout);
 
                     if (!nom.getText().toString().isEmpty() && !qte.getText().toString().isEmpty()) {
