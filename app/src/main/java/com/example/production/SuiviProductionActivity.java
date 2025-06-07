@@ -1,10 +1,10 @@
 package com.example.production;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
@@ -21,6 +21,7 @@ public class SuiviProductionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_suivi_production);
 
+        // Initialisation des vues
         editQuantitePrevue = findViewById(R.id.editQuantitePrevue);
         editQuantiteProduite = findViewById(R.id.editQuantiteProduite);
         editEcarts = findViewById(R.id.editEcarts);
@@ -29,6 +30,7 @@ public class SuiviProductionActivity extends AppCompatActivity {
 
         editEcarts.setVisibility(View.GONE); // caché par défaut
 
+        // Gestion du choix Oui / Non
         radioGroupValidation.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.radioOui) {
                 editEcarts.setVisibility(View.GONE);
@@ -37,6 +39,7 @@ public class SuiviProductionActivity extends AppCompatActivity {
             }
         });
 
+        // Bouton : Valider
         buttonValider.setOnClickListener(v -> {
             String quantitePrevue = editQuantitePrevue.getText().toString().trim();
             String quantiteProduite = editQuantiteProduite.getText().toString().trim();
@@ -52,19 +55,23 @@ public class SuiviProductionActivity extends AppCompatActivity {
                 return;
             }
 
+            String ecarts = "";
             if (selectedId == R.id.radioNon) {
-                String ecarts = editEcarts.getText().toString().trim();
+                ecarts = editEcarts.getText().toString().trim();
                 if (ecarts.isEmpty()) {
                     Toast.makeText(this, "Veuillez indiquer les écarts", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                // Ici, tu peux gérer les écarts
             }
 
-            // Traitement ou sauvegarde ici
-            Toast.makeText(this, "Production validée ✅", Toast.LENGTH_SHORT).show();
-            // Tu peux rediriger ou fermer l'activité ici
-            finish();
+            // ➕ Passage vers l’activité suivante avec données
+            Intent intent = new Intent(SuiviProductionActivity.this, ResumeJourneeActivity.class);
+            intent.putExtra("quantitePrevue", Integer.parseInt(quantitePrevue));
+            intent.putExtra("quantiteProduite", Integer.parseInt(quantiteProduite));
+            intent.putExtra("ecarts", ecarts);
+            startActivity(intent);
+
+            // Pas de finish(); car l'utilisateur peut revenir
         });
     }
 }

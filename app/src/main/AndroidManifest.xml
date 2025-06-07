@@ -36,8 +36,11 @@
         <activity android:name=".livraison.PourcentagesActivity" />
         <activity android:name=".livraison.ResumeCommandesActivity" />
 
-        <!-- 🛠️ Suivi de la production (page 5) -->
-        <activity android:name=".SuiviProductionActivity" /> <!-- ✅ Corrigé ici -->
+        <!-- 🛠️ Suivi de la production -->
+        <activity android:name=".SuiviProductionActivity" />
+
+        <!-- 📊 Résumé de fin de journée (à ajouter si ce n’est pas encore fait) -->
+        <activity android:name=".ResumeJourneeActivity" />
 
     </application>
 
