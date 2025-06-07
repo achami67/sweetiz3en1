@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:background="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Titre -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Modifier le rapport"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp"
+            android:textColor="#000000" />
+
+        <!-- Client -->
+        <EditText
+            android:id="@+id/editTextClient"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Client"
+            android:inputType="textPersonName"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Quantité -->
+        <EditText
+            android:id="@+id/editTextQuantite"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Quantité livrée"
+            android:inputType="number"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Montant -->
+        <EditText
+            android:id="@+id/editTextMontant"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Montant collecté (€)"
+            android:inputType="numberDecimal"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Payé -->
+        <Switch
+            android:id="@+id/switchPaiement"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Payé ?"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Bouton Modifier -->
+        <Button
+            android:id="@+id/buttonModifier"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Modifier"
+            android:backgroundTint="#77DD77"
+            android:textColor="#000000"
+            android:textAllCaps="false"
+            android:textSize="18sp" />
+    </LinearLayout>
+</ScrollView>
