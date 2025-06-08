@@ -1,7 +1,7 @@
 package com.example.production.livraison;
 
 import com.example.production.R;
-import com.example.production.SuiviProductionActivity; // ✅ Import corrigé
+import com.example.production.SuiviProductionActivity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -42,12 +42,18 @@ public class ResumeCommandesActivity extends AppCompatActivity {
         afficherCommandesSpeciales(global);
         afficherTotalGlobal(global);
 
-        // 🔽 Lien vers Suivi de la production (page 5)
+        // 🔐 Affichage conditionnel du bouton selon la section
+        String section = getIntent().getStringExtra("section");
         Button btnSuivi = findViewById(R.id.buttonSuiviProduction);
-        btnSuivi.setOnClickListener(v -> {
-            Intent intent = new Intent(this, SuiviProductionActivity.class);
-            startActivity(intent);
-        });
+
+        if (!"PRODUCTION".equalsIgnoreCase(section)) {
+            btnSuivi.setVisibility(Button.GONE);
+        } else {
+            btnSuivi.setOnClickListener(v -> {
+                Intent intent = new Intent(this, SuiviProductionActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 
     private List<PourcentageGout> chargerBasePourcentages() {
