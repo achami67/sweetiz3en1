@@ -32,6 +32,16 @@ public class PourcentagesActivity extends AppCompatActivity implements Pourcenta
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pourcentages);
 
+        // 🔄 Vérification du mode livreur
+        String mode = getIntent().getStringExtra("mode");
+        if ("lecture".equals(mode)) {
+            Intent intent = new Intent(this, ResumeCommandesActivity.class);
+            intent.putExtra("section", "LIVRAISON");
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         editTextNomGout = findViewById(R.id.editTextNomGout);
         editTextPourcentage = findViewById(R.id.editTextPourcentage);
         buttonAjouter = findViewById(R.id.buttonAjouter);

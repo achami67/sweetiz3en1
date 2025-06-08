@@ -1,17 +1,19 @@
 package com.example.production.livraison;
 
-import com.example.production.R;
-import com.example.production.SuiviProductionActivity;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.production.R;
+import com.example.production.SuiviProductionActivity;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -36,13 +38,36 @@ public class ResumeCommandesActivity extends AppCompatActivity {
         tableauTotalParGout = findViewById(R.id.tableauTotalParGout);
         basePourcentages = chargerBasePourcentages();
 
-        Map<String, Integer> global = new HashMap<>();
-        afficherCommandesHabituelles(global);
-        afficherCommandesPonctuelles(global);
-        afficherCommandesSpeciales(global);
-        afficherTotalGlobal(global);
+        String mode = getIntent().getStringExtra("mode");
+        Log.d("MODE", "Mode reçu : " + mode);
 
-        // 🔐 Affichage conditionnel du bouton selon la section
+        Map<String, Integer> global = new HashMap<>();
+
+        if ("lecture".equalsIgnoreCase(mode)) {
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference commandesRef = database.getReference("commandesDuJour");
+
+            commandesRef.get().addOnSuccessListener(snapshot -> {
+                if (snapshot.exists()) {
+                    Map<String, Long> data = (Map<String, Long>) snapshot.getValue();
+                    for (Map.Entry<String, Long> entry : data.entrySet()) {
+                        global.put(entry.getKey(), entry.getValue().intValue());
+                    }
+                    afficherTotalGlobal(global);
+                }
+            });
+
+        } else {
+            afficherCommandesHabituelles(global);
+            afficherCommandesPonctuelles(global);
+            afficherCommandesSpeciales(global);
+            afficherTotalGlobal(global);
+
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference commandesRef = database.getReference("commandesDuJour");
+            commandesRef.setValue(global);
+        }
+
         String section = getIntent().getStringExtra("section");
         Button btnSuivi = findViewById(R.id.buttonSuiviProduction);
 

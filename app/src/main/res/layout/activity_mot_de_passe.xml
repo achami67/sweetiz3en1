@@ -25,6 +25,16 @@
         android:padding="12dp"
         android:background="@android:drawable/edit_text"
         android:textSize="16sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- ✅ CheckBox ajoutée ici -->
+    <CheckBox
+        android:id="@+id/checkbox_livreur"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Je suis le livreur"
+        android:textSize="16sp"
+        android:checked="true"
         android:layout_marginBottom="24dp" />
 
     <Button

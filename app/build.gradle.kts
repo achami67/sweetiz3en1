@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services") // ✅ Nécessaire pour Firebase
 }
 
 android {
@@ -51,7 +52,13 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
 
-    // 🔧 Ajout Gson
+    // 🔥 Firebase BoM (recommandé)
+    implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
+
+    // ✅ Firebase Realtime Database (version gérée automatiquement par BoM)
+    implementation("com.google.firebase:firebase-database")
+
+    // 🔧 Gson pour le JSON
     implementation("com.google.code.gson:gson:2.10.1")
 
     testImplementation(libs.junit)
