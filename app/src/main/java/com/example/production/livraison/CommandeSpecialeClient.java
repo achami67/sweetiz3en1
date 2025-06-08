@@ -8,6 +8,13 @@ public class CommandeSpecialeClient {
     private String nomClient;
     private List<SousCommande> sousCommandes;
 
+    // Constructeur sans argument (obligatoire pour Firebase)
+    public CommandeSpecialeClient() {
+        this.nomClient = "";
+        this.sousCommandes = new ArrayList<>();
+    }
+
+    // Constructeur avec nomClient
     public CommandeSpecialeClient(String nomClient) {
         this.nomClient = nomClient;
         this.sousCommandes = new ArrayList<>();

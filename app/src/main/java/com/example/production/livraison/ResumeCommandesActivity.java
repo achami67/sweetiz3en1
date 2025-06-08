@@ -14,6 +14,7 @@ import com.example.production.R;
 import com.example.production.SuiviProductionActivity;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -26,6 +27,11 @@ public class ResumeCommandesActivity extends AppCompatActivity {
     private LinearLayout tableauCommandesSpeciales;
     private LinearLayout tableauTotalParGout;
     private List<PourcentageGout> basePourcentages;
+
+    // Déclare en champs d'instance pour utilisation dans les lambdas
+    private List<CommandeClient> habituelles = new ArrayList<>();
+    private List<CommandeClient> ponctuelles = new ArrayList<>();
+    private List<CommandeSpecialeClient> speciales = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,33 +47,13 @@ public class ResumeCommandesActivity extends AppCompatActivity {
         String mode = getIntent().getStringExtra("mode");
         Log.d("MODE", "Mode reçu : " + mode);
 
-        Map<String, Integer> global = new HashMap<>();
-
         if ("lecture".equalsIgnoreCase(mode)) {
-            FirebaseDatabase database = FirebaseDatabase.getInstance();
-            DatabaseReference commandesRef = database.getReference("commandesDuJour");
-
-            commandesRef.get().addOnSuccessListener(snapshot -> {
-                if (snapshot.exists()) {
-                    Map<String, Long> data = (Map<String, Long>) snapshot.getValue();
-                    for (Map.Entry<String, Long> entry : data.entrySet()) {
-                        global.put(entry.getKey(), entry.getValue().intValue());
-                    }
-                    afficherTotalGlobal(global);
-                }
-            });
-
+            chargerDonneesDepuisFirebase();
         } else {
-            afficherCommandesHabituelles(global);
-            afficherCommandesPonctuelles(global);
-            afficherCommandesSpeciales(global);
-            afficherTotalGlobal(global);
-
-            FirebaseDatabase database = FirebaseDatabase.getInstance();
-            DatabaseReference commandesRef = database.getReference("commandesDuJour");
-            commandesRef.setValue(global);
+            chargerEtEnvoyerDonnees();
         }
 
+        // Gestion bouton suivi production
         String section = getIntent().getStringExtra("section");
         Button btnSuivi = findViewById(R.id.buttonSuiviProduction);
 
@@ -81,6 +67,119 @@ public class ResumeCommandesActivity extends AppCompatActivity {
         }
     }
 
+    private void chargerDonneesDepuisFirebase() {
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+
+        rootRef.child("commandes_habituelles").get().addOnSuccessListener(snapshotHabituelles -> {
+            if (snapshotHabituelles.exists()) {
+                GenericTypeIndicator<List<CommandeClient>> t = new GenericTypeIndicator<List<CommandeClient>>() {};
+                habituelles = snapshotHabituelles.getValue(t);
+                if (habituelles == null) habituelles = new ArrayList<>();
+            }
+
+            rootRef.child("commandes_ponctuelles").get().addOnSuccessListener(snapshotPonctuelles -> {
+                if (snapshotPonctuelles.exists()) {
+                    GenericTypeIndicator<List<CommandeClient>> t = new GenericTypeIndicator<List<CommandeClient>>() {};
+                    ponctuelles = snapshotPonctuelles.getValue(t);
+                    if (ponctuelles == null) ponctuelles = new ArrayList<>();
+                }
+
+                rootRef.child("commandes_speciales").get().addOnSuccessListener(snapshotSpeciales -> {
+                    if (snapshotSpeciales.exists()) {
+                        GenericTypeIndicator<List<CommandeSpecialeClient>> t = new GenericTypeIndicator<List<CommandeSpecialeClient>>() {};
+                        speciales = snapshotSpeciales.getValue(t);
+                        if (speciales == null) speciales = new ArrayList<>();
+                    }
+
+                    rootRef.child("total_par_gout").get().addOnSuccessListener(snapshotTotal -> {
+                        Map<String, Long> totalLong = new HashMap<>();
+                        if (snapshotTotal.exists()) {
+                            GenericTypeIndicator<Map<String, Long>> t = new GenericTypeIndicator<Map<String, Long>>() {};
+                            totalLong = snapshotTotal.getValue(t);
+                        }
+                        Map<String, Integer> total = convertLongMapToIntMap(totalLong);
+
+                        afficherCommandesHabituelles(habituelles);
+                        afficherCommandesPonctuelles(ponctuelles);
+                        afficherCommandesSpeciales(speciales);
+                        afficherTotalGlobal(total);
+                    });
+                });
+            });
+        });
+    }
+
+    private void chargerEtEnvoyerDonnees() {
+        // Charger depuis SharedPreferences
+        habituelles = chargerCommandes("commandes_habituelles");
+        ponctuelles = chargerCommandes("commandes_ponctuelles");
+        speciales = chargerCommandesSpeciales("commandes_speciales");
+
+        Map<String, Integer> global = new HashMap<>();
+
+        // Calculer global à partir des commandes
+        for (CommandeClient c : habituelles) {
+            if (!c.isInclureAujourdHui()) continue;
+            Map<String, Integer> repartition = calculerRepartitionClient(c);
+            accumulerDansGlobal(global, repartition);
+        }
+        for (CommandeClient c : ponctuelles) {
+            Map<String, Integer> repartition = calculerRepartitionClient(c);
+            accumulerDansGlobal(global, repartition);
+        }
+        for (CommandeSpecialeClient c : speciales) {
+            for (SousCommande sc : c.getSousCommandes()) {
+                Map<String, Integer> goutFixe = new HashMap<>();
+                for (GoutQuantite gq : sc.getGouts()) {
+                    goutFixe.put(gq.getNom(), gq.getQuantite());
+                }
+                accumulerDansGlobal(global, goutFixe);
+            }
+        }
+
+        // Affichage local
+        afficherCommandesHabituelles(habituelles);
+        afficherCommandesPonctuelles(ponctuelles);
+        afficherCommandesSpeciales(speciales);
+        afficherTotalGlobal(global);
+
+        // Envoyer dans Firebase
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        rootRef.child("commandes_habituelles").setValue(habituelles);
+        rootRef.child("commandes_ponctuelles").setValue(ponctuelles);
+        rootRef.child("commandes_speciales").setValue(speciales);
+        rootRef.child("total_par_gout").setValue(global);
+    }
+
+    private List<CommandeClient> chargerCommandes(String key) {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        String json = prefs.getString(key, null);
+        if (json == null || json.equals("null")) return new ArrayList<>();
+        return new Gson().fromJson(json, new TypeToken<List<CommandeClient>>() {}.getType());
+    }
+
+    private List<CommandeSpecialeClient> chargerCommandesSpeciales(String key) {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        String json = prefs.getString(key, null);
+        if (json == null || json.equals("null")) return new ArrayList<>();
+        return new Gson().fromJson(json, new TypeToken<List<CommandeSpecialeClient>>() {}.getType());
+    }
+
+    private Map<String, Integer> calculerRepartitionClient(CommandeClient client) {
+        int total = client.getQuantiteTotale();
+        Map<String, Integer> goutFixe = new HashMap<>();
+        Set<String> exclusions = new HashSet<>(client.getGoutsExclus());
+        int dejaPris = 0;
+
+        for (GoutQuantite gq : client.getGouts()) {
+            goutFixe.put(gq.getNom(), gq.getQuantite());
+            dejaPris += gq.getQuantite();
+        }
+
+        int reste = Math.max(total - dejaPris, 0);
+        return repartirAvecPourcentage(goutFixe, exclusions, reste);
+    }
+
     private List<PourcentageGout> chargerBasePourcentages() {
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         String json = prefs.getString("liste_gouts", null);
@@ -90,68 +189,25 @@ public class ResumeCommandesActivity extends AppCompatActivity {
         return new ArrayList<>();
     }
 
-    private void afficherCommandesHabituelles(Map<String, Integer> global) {
-        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        String json = prefs.getString("commandes_habituelles", null);
-        if (json == null || json.equals("null")) return;
-
-        List<CommandeClient> commandes = new Gson().fromJson(json, new TypeToken<List<CommandeClient>>() {}.getType());
-        if (commandes == null) return;
-
+    private void afficherCommandesHabituelles(List<CommandeClient> commandes) {
+        tableauCommandesHabituelles.removeAllViews();
         for (CommandeClient client : commandes) {
             if (!client.isInclureAujourdHui()) continue;
-
-            int total = client.getQuantiteTotale();
-            Map<String, Integer> goutFixe = new HashMap<>();
-            Set<String> exclusions = new HashSet<>(client.getGoutsExclus());
-            int dejaPris = 0;
-
-            for (GoutQuantite gq : client.getGouts()) {
-                goutFixe.put(gq.getNom(), gq.getQuantite());
-                dejaPris += gq.getQuantite();
-            }
-
-            int reste = Math.max(total - dejaPris, 0);
-            Map<String, Integer> resultat = repartirAvecPourcentage(goutFixe, exclusions, reste);
-            ajouterBlocCommande(tableauCommandesHabituelles, client.getNomClient(), resultat);
-            accumulerDansGlobal(global, resultat);
+            Map<String, Integer> repartition = calculerRepartitionClient(client);
+            ajouterBlocCommande(tableauCommandesHabituelles, client.getNomClient(), repartition);
         }
     }
 
-    private void afficherCommandesPonctuelles(Map<String, Integer> global) {
-        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        String json = prefs.getString("commandes_ponctuelles", null);
-        if (json == null || json.equals("null")) return;
-
-        List<CommandeClient> commandes = new Gson().fromJson(json, new TypeToken<List<CommandeClient>>() {}.getType());
-        if (commandes == null) return;
-
+    private void afficherCommandesPonctuelles(List<CommandeClient> commandes) {
+        tableauCommandesPonctuelles.removeAllViews();
         for (CommandeClient client : commandes) {
-            int total = client.getQuantiteTotale();
-            Map<String, Integer> goutFixe = new HashMap<>();
-            Set<String> exclusions = new HashSet<>(client.getGoutsExclus());
-            int dejaPris = 0;
-
-            for (GoutQuantite gq : client.getGouts()) {
-                goutFixe.put(gq.getNom(), gq.getQuantite());
-                dejaPris += gq.getQuantite();
-            }
-
-            int reste = Math.max(total - dejaPris, 0);
-            Map<String, Integer> resultat = repartirAvecPourcentage(goutFixe, exclusions, reste);
-            ajouterBlocCommande(tableauCommandesPonctuelles, client.getNomClient(), resultat);
-            accumulerDansGlobal(global, resultat);
+            Map<String, Integer> repartition = calculerRepartitionClient(client);
+            ajouterBlocCommande(tableauCommandesPonctuelles, client.getNomClient(), repartition);
         }
     }
 
-    private void afficherCommandesSpeciales(Map<String, Integer> global) {
-        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        String json = prefs.getString("commandes_speciales", null);
-        if (json == null || json.equals("null")) return;
-
-        List<CommandeSpecialeClient> clients = new Gson().fromJson(json, new TypeToken<List<CommandeSpecialeClient>>() {}.getType());
-        if (clients == null) return;
-
+    private void afficherCommandesSpeciales(List<CommandeSpecialeClient> clients) {
+        tableauCommandesSpeciales.removeAllViews();
         for (CommandeSpecialeClient client : clients) {
             for (SousCommande sc : client.getSousCommandes()) {
                 Map<String, Integer> goutFixe = new HashMap<>();
@@ -159,12 +215,12 @@ public class ResumeCommandesActivity extends AppCompatActivity {
                     goutFixe.put(gq.getNom(), gq.getQuantite());
                 }
                 ajouterBlocCommande(tableauCommandesSpeciales, client.getNomClient(), goutFixe);
-                accumulerDansGlobal(global, goutFixe);
             }
         }
     }
 
     private void afficherTotalGlobal(Map<String, Integer> global) {
+        tableauTotalParGout.removeAllViews();
         TextView titre = new TextView(this);
         titre.setText("Total par goût :");
         titre.setTextSize(18);
@@ -240,5 +296,13 @@ public class ResumeCommandesActivity extends AppCompatActivity {
             ligne.setTextSize(16);
             parent.addView(ligne);
         }
+    }
+
+    private Map<String, Integer> convertLongMapToIntMap(Map<String, Long> longMap) {
+        Map<String, Integer> intMap = new HashMap<>();
+        for (Map.Entry<String, Long> entry : longMap.entrySet()) {
+            intMap.put(entry.getKey(), entry.getValue().intValue());
+        }
+        return intMap;
     }
 }

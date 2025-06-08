@@ -3,12 +3,19 @@ package com.example.production.livraison;
 public class GoutQuantite {
     private String nom;
     private int quantite;
-    private boolean goutFixe; // champ ajouté pour indiquer si la quantité est fixe (déjà définie)
+    private boolean goutFixe;
+
+    // Constructeur sans argument pour Firebase
+    public GoutQuantite() {
+        this.nom = "";
+        this.quantite = 0;
+        this.goutFixe = false;
+    }
 
     public GoutQuantite(String nom, int quantite) {
         this.nom = nom;
         this.quantite = quantite;
-        this.goutFixe = quantite > 0; // on considère qu’un goût est fixe s’il a une quantité non nulle
+        this.goutFixe = quantite > 0;
     }
 
     public String getNom() {

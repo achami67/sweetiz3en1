@@ -8,7 +8,16 @@ public class CommandeClient {
     private List<GoutQuantite> gouts;
     private int quantiteTotale;
     private List<String> goutsExclus;
-    private boolean inclureAujourdHui = false; // ✅ Ajout du champ
+    private boolean inclureAujourdHui = false;
+
+    // Constructeur sans argument nécessaire pour Firebase
+    public CommandeClient() {
+        this.nomClient = "";
+        this.gouts = new ArrayList<>();
+        this.goutsExclus = new ArrayList<>();
+        this.quantiteTotale = 0;
+        this.inclureAujourdHui = false;
+    }
 
     public CommandeClient(String nomClient) {
         this.nomClient = nomClient;
@@ -16,6 +25,7 @@ public class CommandeClient {
         this.goutsExclus = new ArrayList<>();
     }
 
+    // getters & setters (inchangés)
     public String getNomClient() {
         return nomClient;
     }
@@ -48,7 +58,6 @@ public class CommandeClient {
         this.goutsExclus = goutsExclus;
     }
 
-    // ✅ Accesseurs pour "Inclure dans la commande du jour"
     public boolean isInclureAujourdHui() {
         return inclureAujourdHui;
     }
