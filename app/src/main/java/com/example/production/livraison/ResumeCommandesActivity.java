@@ -254,6 +254,11 @@ public class ResumeCommandesActivity extends AppCompatActivity {
             }
         }
 
+        // Patch pour éviter division par zéro
+        if (totalPourcent == 0) {
+            return res;
+        }
+
         Map<String, Integer> repartition = new LinkedHashMap<>();
         Map<String, Double> reelle = new HashMap<>();
         int cumul = 0;
