@@ -28,7 +28,6 @@ public class ResumeCommandesActivity extends AppCompatActivity {
     private LinearLayout tableauTotalParGout;
     private List<PourcentageGout> basePourcentages;
 
-    // Déclare en champs d'instance pour utilisation dans les lambdas
     private List<CommandeClient> habituelles = new ArrayList<>();
     private List<CommandeClient> ponctuelles = new ArrayList<>();
     private List<CommandeSpecialeClient> speciales = new ArrayList<>();
@@ -53,7 +52,6 @@ public class ResumeCommandesActivity extends AppCompatActivity {
             chargerEtEnvoyerDonnees();
         }
 
-        // Gestion bouton suivi production
         String section = getIntent().getStringExtra("section");
         Button btnSuivi = findViewById(R.id.buttonSuiviProduction);
 
@@ -71,36 +69,30 @@ public class ResumeCommandesActivity extends AppCompatActivity {
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
 
         rootRef.child("commandes_habituelles").get().addOnSuccessListener(snapshotHabituelles -> {
-            if (snapshotHabituelles.exists()) {
-                GenericTypeIndicator<List<CommandeClient>> t = new GenericTypeIndicator<List<CommandeClient>>() {};
-                habituelles = snapshotHabituelles.getValue(t);
-                if (habituelles == null) habituelles = new ArrayList<>();
-            }
+            GenericTypeIndicator<Map<String, Map<String, Long>>> t1 = new GenericTypeIndicator<>() {};
+            Map<String, Map<String, Long>> rawHabit = snapshotHabituelles.getValue(t1);
+            Map<String, Map<String, Integer>> habit = convertNestedMap(rawHabit);
 
             rootRef.child("commandes_ponctuelles").get().addOnSuccessListener(snapshotPonctuelles -> {
-                if (snapshotPonctuelles.exists()) {
-                    GenericTypeIndicator<List<CommandeClient>> t = new GenericTypeIndicator<List<CommandeClient>>() {};
-                    ponctuelles = snapshotPonctuelles.getValue(t);
-                    if (ponctuelles == null) ponctuelles = new ArrayList<>();
-                }
+                GenericTypeIndicator<Map<String, Map<String, Long>>> t2 = new GenericTypeIndicator<>() {};
+                Map<String, Map<String, Long>> rawPonc = snapshotPonctuelles.getValue(t2);
+                Map<String, Map<String, Integer>> ponc = convertNestedMap(rawPonc);
 
                 rootRef.child("commandes_speciales").get().addOnSuccessListener(snapshotSpeciales -> {
-                    if (snapshotSpeciales.exists()) {
-                        GenericTypeIndicator<List<CommandeSpecialeClient>> t = new GenericTypeIndicator<List<CommandeSpecialeClient>>() {};
-                        speciales = snapshotSpeciales.getValue(t);
-                        if (speciales == null) speciales = new ArrayList<>();
-                    }
+                    GenericTypeIndicator<List<CommandeSpecialeClient>> t3 = new GenericTypeIndicator<>() {};
+                    speciales = snapshotSpeciales.getValue(t3);
+                    if (speciales == null) speciales = new ArrayList<>();
 
                     rootRef.child("total_par_gout").get().addOnSuccessListener(snapshotTotal -> {
                         Map<String, Long> totalLong = new HashMap<>();
                         if (snapshotTotal.exists()) {
-                            GenericTypeIndicator<Map<String, Long>> t = new GenericTypeIndicator<Map<String, Long>>() {};
+                            GenericTypeIndicator<Map<String, Long>> t = new GenericTypeIndicator<>() {};
                             totalLong = snapshotTotal.getValue(t);
                         }
                         Map<String, Integer> total = convertLongMapToIntMap(totalLong);
 
-                        afficherCommandesHabituelles(habituelles);
-                        afficherCommandesPonctuelles(ponctuelles);
+                        afficherCommandesMap(habit, tableauCommandesHabituelles);
+                        afficherCommandesMap(ponc, tableauCommandesPonctuelles);
                         afficherCommandesSpeciales(speciales);
                         afficherTotalGlobal(total);
                     });
@@ -110,23 +102,27 @@ public class ResumeCommandesActivity extends AppCompatActivity {
     }
 
     private void chargerEtEnvoyerDonnees() {
-        // Charger depuis SharedPreferences
         habituelles = chargerCommandes("commandes_habituelles");
         ponctuelles = chargerCommandes("commandes_ponctuelles");
         speciales = chargerCommandesSpeciales("commandes_speciales");
 
         Map<String, Integer> global = new HashMap<>();
+        Map<String, Map<String, Integer>> mapHabit = new HashMap<>();
+        Map<String, Map<String, Integer>> mapPonc = new HashMap<>();
 
-        // Calculer global à partir des commandes
         for (CommandeClient c : habituelles) {
             if (!c.isInclureAujourdHui()) continue;
             Map<String, Integer> repartition = calculerRepartitionClient(c);
+            mapHabit.put(c.getNomClient(), repartition);
             accumulerDansGlobal(global, repartition);
         }
+
         for (CommandeClient c : ponctuelles) {
             Map<String, Integer> repartition = calculerRepartitionClient(c);
+            mapPonc.put(c.getNomClient(), repartition);
             accumulerDansGlobal(global, repartition);
         }
+
         for (CommandeSpecialeClient c : speciales) {
             for (SousCommande sc : c.getSousCommandes()) {
                 Map<String, Integer> goutFixe = new HashMap<>();
@@ -137,18 +133,23 @@ public class ResumeCommandesActivity extends AppCompatActivity {
             }
         }
 
-        // Affichage local
-        afficherCommandesHabituelles(habituelles);
-        afficherCommandesPonctuelles(ponctuelles);
+        afficherCommandesMap(mapHabit, tableauCommandesHabituelles);
+        afficherCommandesMap(mapPonc, tableauCommandesPonctuelles);
         afficherCommandesSpeciales(speciales);
         afficherTotalGlobal(global);
 
-        // Envoyer dans Firebase
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-        rootRef.child("commandes_habituelles").setValue(habituelles);
-        rootRef.child("commandes_ponctuelles").setValue(ponctuelles);
+        rootRef.child("commandes_habituelles").setValue(mapHabit);
+        rootRef.child("commandes_ponctuelles").setValue(mapPonc);
         rootRef.child("commandes_speciales").setValue(speciales);
         rootRef.child("total_par_gout").setValue(global);
+    }
+
+    private void afficherCommandesMap(Map<String, Map<String, Integer>> data, LinearLayout container) {
+        container.removeAllViews();
+        for (Map.Entry<String, Map<String, Integer>> entry : data.entrySet()) {
+            ajouterBlocCommande(container, entry.getKey(), entry.getValue());
+        }
     }
 
     private List<CommandeClient> chargerCommandes(String key) {
@@ -187,23 +188,6 @@ public class ResumeCommandesActivity extends AppCompatActivity {
             return new Gson().fromJson(json, new TypeToken<List<PourcentageGout>>() {}.getType());
         }
         return new ArrayList<>();
-    }
-
-    private void afficherCommandesHabituelles(List<CommandeClient> commandes) {
-        tableauCommandesHabituelles.removeAllViews();
-        for (CommandeClient client : commandes) {
-            if (!client.isInclureAujourdHui()) continue;
-            Map<String, Integer> repartition = calculerRepartitionClient(client);
-            ajouterBlocCommande(tableauCommandesHabituelles, client.getNomClient(), repartition);
-        }
-    }
-
-    private void afficherCommandesPonctuelles(List<CommandeClient> commandes) {
-        tableauCommandesPonctuelles.removeAllViews();
-        for (CommandeClient client : commandes) {
-            Map<String, Integer> repartition = calculerRepartitionClient(client);
-            ajouterBlocCommande(tableauCommandesPonctuelles, client.getNomClient(), repartition);
-        }
     }
 
     private void afficherCommandesSpeciales(List<CommandeSpecialeClient> clients) {
@@ -254,10 +238,7 @@ public class ResumeCommandesActivity extends AppCompatActivity {
             }
         }
 
-        // Patch pour éviter division par zéro
-        if (totalPourcent == 0) {
-            return res;
-        }
+        if (totalPourcent == 0) return res;
 
         Map<String, Integer> repartition = new LinkedHashMap<>();
         Map<String, Double> reelle = new HashMap<>();
@@ -273,11 +254,10 @@ public class ResumeCommandesActivity extends AppCompatActivity {
         }
 
         int resteARepartir = reste - cumul;
-        valides.sort((a, b) -> {
-            double diffB = reelle.get(b.getNomGout()) - repartition.get(b.getNomGout());
-            double diffA = reelle.get(a.getNomGout()) - repartition.get(a.getNomGout());
-            return Double.compare(diffB, diffA);
-        });
+        valides.sort((a, b) -> Double.compare(
+                reelle.get(b.getNomGout()) - repartition.get(b.getNomGout()),
+                reelle.get(a.getNomGout()) - repartition.get(a.getNomGout())
+        ));
 
         for (int i = 0; i < resteARepartir; i++) {
             String nom = valides.get(i % valides.size()).getNomGout();
@@ -305,9 +285,25 @@ public class ResumeCommandesActivity extends AppCompatActivity {
 
     private Map<String, Integer> convertLongMapToIntMap(Map<String, Long> longMap) {
         Map<String, Integer> intMap = new HashMap<>();
-        for (Map.Entry<String, Long> entry : longMap.entrySet()) {
-            intMap.put(entry.getKey(), entry.getValue().intValue());
+        if (longMap != null) {
+            for (Map.Entry<String, Long> entry : longMap.entrySet()) {
+                intMap.put(entry.getKey(), entry.getValue().intValue());
+            }
         }
         return intMap;
+    }
+
+    private Map<String, Map<String, Integer>> convertNestedMap(Map<String, Map<String, Long>> longMap) {
+        Map<String, Map<String, Integer>> result = new HashMap<>();
+        if (longMap != null) {
+            for (Map.Entry<String, Map<String, Long>> entry : longMap.entrySet()) {
+                Map<String, Integer> inner = new HashMap<>();
+                for (Map.Entry<String, Long> innerEntry : entry.getValue().entrySet()) {
+                    inner.put(innerEntry.getKey(), innerEntry.getValue().intValue());
+                }
+                result.put(entry.getKey(), inner);
+            }
+        }
+        return result;
     }
 }
