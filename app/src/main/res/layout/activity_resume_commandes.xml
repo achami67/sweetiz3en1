@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Titre Commandes enregistrées du jour -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Commandes Enregistrées du Jour"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:id="@+id/tableauCommandesHabituelles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@android:color/darker_gray"
+            android:padding="8dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Titre Commandes Ponctuelles -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Commandes Ponctuelles du Jour"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:id="@+id/tableauCommandesPonctuelles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@android:color/darker_gray"
+            android:padding="8dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Titre Commandes Spéciales -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Commandes Spéciales"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:id="@+id/tableauCommandesSpeciales"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@android:color/darker_gray"
+            android:padding="8dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Titre Total Global -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Total par goût"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:id="@+id/tableauTotalParGout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@android:color/darker_gray"
+            android:padding="8dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- 🔽 Bouton Suivi de la production -->
+        <Button
+            android:id="@+id/buttonSuiviProduction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Suivi de la production"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@android:color/holo_purple"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+</ScrollView>

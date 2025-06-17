@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Résumé de fin de journée"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Saisie du seuil -->
+        <EditText
+            android:id="@+id/editTextSeuil"
+            android:hint="Seuil d’écart (ex : 10)"
+            android:inputType="number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Résultats dynamiques -->
+        <LinearLayout
+            android:id="@+id/layoutResultats"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Encadré d'alerte -->
+        <TextView
+            android:id="@+id/textViewAlerte"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFF3CD"
+            android:textColor="#856404"
+            android:padding="12dp"
+            android:textStyle="bold"
+            android:drawableLeft="@android:drawable/ic_dialog_alert"
+            android:visibility="gone"
+            android:layout_marginTop="16dp" />
+
+        <!-- Boutons OUI / NON -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/buttonValider"
+                android:text="OUI"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#4CAF50"
+                android:textColor="#FFFFFF"
+                android:layout_marginEnd="8dp" />
+
+            <Button
+                android:id="@+id/buttonModifier"
+                android:text="NON"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#BDBDBD"
+                android:textColor="#000000" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.production">
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Production"
+        tools:targetApi="31">
+
+        <!-- 🏠 Accueil principal -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 🔐 Mot de passe pour sécuriser chaque section -->
+        <activity android:name=".MotDePasseActivity" />
+
+        <!-- 📦 Stock -->
+        <activity android:name=".StockActivity" />
+        <activity android:name=".StockJournalierActivity" />
+        <activity android:name=".ConversionTourneesActivity" />
+
+        <!-- 📬 Livraison -->
+        <activity android:name=".livraison.CommandesNormalesActivity" />
+        <activity android:name=".livraison.CommandesSpecialesActivity" />
+        <activity android:name=".livraison.CommandesHabituellesActivity" />
+        <activity android:name=".livraison.PourcentagesActivity" />
+        <activity android:name=".livraison.ResumeCommandesActivity" />
+        <activity android:name=".livraison.PlanningVisuelActivity" /> <!-- ✅ AJOUT ICI -->
+
+        <!-- 🛠️ Suivi de la production -->
+        <activity android:name=".SuiviProductionActivity" />
+
+        <!-- 📊 Résumé de fin de journée -->
+        <activity android:name=".ResumeJourneeActivity" />
+
+        <!-- 📒 Comptabilité -->
+        <activity android:name=".comptabilite.ComptabiliteAccueilActivity" />
+        <activity android:name=".comptabilite.SaisieRapportActivity" />
+        <activity android:name=".comptabilite.ResumeComptableActivity" />
+        <activity android:name=".comptabilite.ModifierRapportActivity" />
+
+    </application>
+
+</manifest>

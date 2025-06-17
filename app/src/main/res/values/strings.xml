@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Production</string>
+
+    <!-- Titres -->
+    <string name="title_visuel_planning">Visuel Planning</string>
+    <string name="jour_selection">Choisir un jour :</string>
+
+    <!-- Boutons -->
+    <string name="btn_ajouter_client">Ajouter un client</string>
+    <string name="btn_ajouter_ponctuelle">Ajouter une commande ponctuelle</string>
+    <string name="btn_ajouter_speciale">Ajouter une commande spéciale</string>
+    <string name="btn_modifier_commande">Modifier exceptionnellement une commande</string>
+    <string name="btn_valider_planning">Valider</string>
+
+    <!-- Jours de la semaine -->
+    <string-array name="jours_semaine">
+        <item>Lundi</item>
+        <item>Mardi</item>
+        <item>Mercredi</item>
+        <item>Jeudi</item>
+        <item>Vendredi</item>
+        <item>Samedi</item>
+        <item>Dimanche</item>
+    </string-array>
+
+    <!-- Exemples -->
+    <string name="commande_exemple_1">Client A : 25 - No Or, 10 Bu</string>
+    <string name="commande_exemple_2">Client B : 30 - Sp 20%, Fr 10%</string>
+</resources>

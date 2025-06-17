@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "690806683223",
+    "project_id": "sweetiz-702c3",
+    "storage_bucket": "sweetiz-702c3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:690806683223:android:f2dc967647937d18d99512",
+        "android_client_info": {
+          "package_name": "com.example.production"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3ZWEGYAQ8_rH38Kl_KvPpzubxeUfO1C8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
